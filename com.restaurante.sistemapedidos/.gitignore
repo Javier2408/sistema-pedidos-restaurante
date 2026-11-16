@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Archivos temporales
+error.log
+*.zip
