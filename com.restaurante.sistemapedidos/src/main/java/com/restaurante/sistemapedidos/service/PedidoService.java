@@ -1,5 +1,9 @@
 package com.restaurante.sistemapedidos.service;
 
+
+import com.restaurante.sistemapedidos.exception.PedidoInvalidoException;
+import com.restaurante.sistemapedidos.exception.RecursoNoEncontradoException;
+import com.restaurante.sistemapedidos.exception.ReglaNegocioException;
 import com.restaurante.sistemapedidos.entity.*;
 import com.restaurante.sistemapedidos.repository.*;
 import org.springframework.stereotype.Service;
@@ -31,10 +35,15 @@ public class PedidoService {
         return pedidos.findAll();
     }
 
-    public Pedido buscar(Long id) {
-        return pedidos.findById(id).orElseThrow(() ->
-            new ResponseStatusException(HttpStatus.NOT_FOUND, "Pedido no encontrado"));
-    }
+   
+public Pedido buscar(Long id) {
+    return pedidos.findById(id).orElseThrow(() ->
+            new RecursoNoEncontradoException(
+                    "Pedido no encontrado"));
+}
+
+
+    
 
     @Transactional
     public Pedido crear(Long clienteId) {
@@ -69,11 +78,14 @@ return pedidos.save(pedido);
                 "El plato no esta disponible");
         }
 
-        if (plato.getPrecio() == null ||
-            plato.getPrecio().compareTo(BigDecimal.ZERO) < 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                "El precio del plato no es valido");
-        }
+        
+if (plato.getPrecio() == null ||
+        plato.getPrecio().compareTo(BigDecimal.ZERO) < 0) {
+    throw new ReglaNegocioException(
+            "El precio del plato no es valido");
+}
+
+        
 
         DetallePedido detalle = new DetallePedido();
         detalle.setPedido(pedido);
@@ -98,8 +110,9 @@ return pedidos.save(pedido);
         Pedido pedido = buscar(id);
         if (estado == null ||
             !Set.of("PENDIENTE", "PREPARANDO", "ENTREGADO", "CANCELADO").contains(estado)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                "Estado no valido");
+            
+throw new PedidoInvalidoException("Estado no valido");
+
         }
         pedido.setEstado(estado);
         return pedidos.save(pedido);
